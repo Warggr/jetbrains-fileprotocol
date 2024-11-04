@@ -45,9 +45,13 @@ int open_socket(char* path){
 	namedsocket.sun_family = AF_UNIX;
 	strncpy(namedsocket.sun_path, path, strlen(path));
 
+	// Preliminarily remove the socket if it exists, because bind fails when the file location exists
+	// This is ugly and might remove important files, but registering an atexit() and a signal handler is too much work for now
+	unlink(path);
+
 	success = bind(fd, (struct sockaddr*) &namedsocket, sizeof(struct sockaddr_un));
 	if(success == -1) handle_error("bind");
-	
+
 	success = listen(fd, LISTEN_BACKLOG);
 	if(success == -1) handle_error("listen");
 
@@ -150,7 +154,10 @@ void handle_client(int clientfd, int* filefd, const char* filepath){
 		int len = recv(clientfd, (char*)&header_buffer, sizeof header_buffer, 0);
 		if(len == 0) return;
 		if(len < sizeof header_buffer){
-			printf("Error: got incomplete message header");
+			for(int i = 0; i<len; i++){
+				printf("(%d)", ((char*)&header_buffer)[i]);
+			}
+			printf("Error: got incomplete message header: %d bytes", len);
 			return;
 		}
 		message.message_type = header_buffer.message_type;
@@ -159,7 +166,10 @@ void handle_client(int clientfd, int* filefd, const char* filepath){
 
 		len = recv(clientfd, message.body, message.content_length, 0);
 		if(len < message.content_length){
-			printf("Error: got incomplete message body");
+			for(int i = 0; i<len; i++){
+				printf("(%d)", message.body[i]);
+			}
+			printf("Error: got incomplete message body: %d bytes, expected %d", len, message.content_length);
 			return;
 		}
 
@@ -194,7 +204,7 @@ int main(int argc, char** argv){
 	printf("Opened socket\n");
 
 	char* filename = argv[2];
-	int filefd = open(filename, O_APPEND|O_CREAT|O_WRONLY);
+	int filefd = open(filename, O_APPEND|O_CREAT|O_WRONLY, S_IRUSR|S_IWUSR);
 	printf("Opened file\n");
 
 	int clientfd = accept_client(sockfd);

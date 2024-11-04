@@ -1,0 +1,4 @@
+write hello
+clear
+write hello
+write , world

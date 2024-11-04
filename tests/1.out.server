@@ -1,0 +1,9 @@
+Opened socket
+Opened file
+Waiting for client...
+Connected with client
+Received message, code: 1, content length: 0
+Received message, code: 5, content length: 0
+Answering message with code 1
+Received message, code: 4, content length: 15
+Warning: Client sent an error: "Error message"Ended connection

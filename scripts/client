@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+
+SOCKET=$1
+
+function encode {
+	code=$1; shift
+	content_length=$(echo -n $@ | wc -c)
+	content_length=$(printf "%.8x" $content_length) #| sed -E 's/(..)(..)(..)(..)/\4\3\2\1/')
+	# see https://stackoverflow.com/a/9955198
+	content=$(echo -n $@ | xxd -ps | tr -d '\n') # hexadecimal representation
+	printf "%02x000000$content_length$content" "$code" | xxd -r -p
+}
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+	line=($line)
+	case ${line[0]} in
+		ok) code=1 ;;
+		write) code=2 ;;
+		clear) code=3 ;;
+		error) code=4 ;;
+		ping) code=5 ;;
+		*) code=${line[0]} ;;
+	esac
+	encode $code "${line[@]:1}"
+done | nc -U -q1 $SOCKET

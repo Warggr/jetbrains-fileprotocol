@@ -1,0 +1,13 @@
+Opened socket
+Opened file
+Waiting for client...
+Connected with client
+Received message, code: 2, content length: 5
+Answering message with code 1
+Received message, code: 3, content length: 0
+Answering message with code 1
+Received message, code: 2, content length: 5
+Answering message with code 1
+Received message, code: 2, content length: 7
+Answering message with code 1
+Ended connection
